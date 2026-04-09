@@ -36,6 +36,8 @@ jobs:
         mkdir -p dist/JS/bundle
         cp -r JS/bundle/* dist/JS/bundle/
         cp -r Resources dist/
+        cp -r themes dist/
+        cp changelog.txt dist/
         cp manifest.json dist/
         cp package.json dist/
         cp README.md dist/
@@ -72,21 +74,22 @@ jobs:
         name: Goonopticon ${{ steps.version.outputs.tag }}
         body: |
           ## Goonopticon ${{ steps.version.outputs.tag }}
-          
-          ### What's New
-          - **Theme System Improvements (Partial)**: Added custom theme variable overrides for sidebar buttons, fixed theme submenu loading, added CSS overrides for hardcoded colors
 
-          **Note**: Some theme issues remain and will be addressed in future updates.
-          
-          ### Installation
-          1. Download the `goonopticon-extension.zip` file
-          2. Extract the zip file
-          3. Open Chrome/Edge and go to `chrome://extensions/`
-          4. Enable "Developer mode"
-          5. Click "Load unpacked" and select the extracted folder
-          
-          ### Files
-          - `goonopticon-extension.zip` - Complete extension package
+          ### Changelog
+          See [`changelog.txt`](https://github.com/CrudePixels/Goonopticon-Extension/blob/main/changelog.txt) in the repo for full release notes.
+
+          ### Installation (Chrome / Edge / Brave)
+          1. Download **goonopticon-extension.zip**
+          2. Extract the zip
+          3. Open `chrome://extensions` (or `edge://extensions`)
+          4. Enable **Developer mode**
+          5. **Load unpacked** → select the extracted folder
+
+          ### Safari (macOS)
+          Use **Add Temporary Extension…** or run `npm run safari:convert` — see `safari/README.md` in the repo.
+
+          ### Package
+          - **goonopticon-extension.zip** — unpacked extension (Load unpacked)
         files: goonopticon-extension.zip
         draft: false
         prerelease: false
