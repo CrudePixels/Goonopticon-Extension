@@ -1,11 +1,12 @@
 {
   "name": "podawfultimestamps",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npm run build && npm run watch",
     "build": "webpack",
+    "safari:convert": "node scripts/safari-convert.js",
     "watch": "webpack --watch",
     "release": "node scripts/release.js",
     "task": "node task-manager.js",

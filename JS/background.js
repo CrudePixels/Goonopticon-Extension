@@ -152,13 +152,19 @@ async function checkForUpdates(forceCheck = false) {
                 });
             });
             
-            // Show notification
-            browser.notifications.create({
-                type: 'basic',
-                iconUrl: 'Resources/icon-48.png',
-                title: 'Goonopticon Update Available',
-                message: `Version ${latestVersion} is now available! Click to update.`
-            });
+            // Show notification (optional: not all Safari versions expose notifications the same way)
+            try {
+                if (browser.notifications && typeof browser.notifications.create === 'function') {
+                    await browser.notifications.create({
+                        type: 'basic',
+                        iconUrl: 'Resources/icon-48.png',
+                        title: 'Goonopticon Update Available',
+                        message: `Version ${latestVersion} is now available! Click to update.`,
+                    });
+                }
+            } catch (_) {
+                LogDev('Update notification skipped (API unavailable)', 'system');
+            }
         } else {
             LogDev("Extension is up to date", "system");
             await new Promise((resolve, reject) => {

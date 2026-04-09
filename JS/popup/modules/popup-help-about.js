@@ -69,6 +69,7 @@ export function showAboutModal() {
                 ·
                 <a href="${GOONOPTICON_REPO_URL}/releases/latest" target="_blank" rel="noopener noreferrer">Latest release</a>
             </p>
+            <p class="popup-about-safari" style="font-size:0.9em;opacity:0.9;margin-top:12px;">Safari (macOS): see <code>safari/README.md</code> — temporary install or <code>npm run safari:convert</code> with Xcode.</p>
         </div>
     `;
     document.body.appendChild(modal);
