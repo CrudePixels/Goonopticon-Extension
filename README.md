@@ -23,29 +23,6 @@ A powerful browser extension for timestamping YouTube videos with advanced group
 - **🔧 Debug Tools**: Access detailed debugging information
 - **📈 Performance**: Optimized for smooth performance on all devices
 
-## Installation
-
-### Development Setup
-1. Clone the repository:
-   ```bash
-   git clone [repository-url]
-   cd Goonopticon-Refactor
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Build the extension:
-   ```bash
-   # For development (auto-rebuilds on changes)
-   npm run dev
-   
-   # For production
-   npm run build
-   ```
-
 ### Browser Installation
 
 #### Chrome/Edge
@@ -58,33 +35,5 @@ A powerful browser extension for timestamping YouTube videos with advanced group
 1. Open `about:debugging#/runtime/this-firefox`
 2. Click "Load Temporary Add-on" and select the `manifest.json` file
 3. The extension will be available for the current session
-
-## Usage
-
-### Getting Started
-1. Navigate to any YouTube video page
-2. Click the Goonopticon extension icon in your browser toolbar
-3. Use "Show Sidebar" to toggle the timestamping interface
-4. Start creating timestamped notes!
-
-### Creating Notes
-- Use the video player controls or hotkeys to navigate to desired timestamps
-- Click "Add Note" or use the configured hotkey
-- Enter your note text and optionally add tags
-- Organize notes into groups for better management
-
-### Managing Content
-- **Tags**: Use the tag manager to create, edit, and organize tags
-- **Groups**: Create groups to organize related notes
-- **Bulk Actions**: Select multiple items for efficient management
-- **Search**: Use the search bar to find specific notes quickly
-- **Filter**: Filter notes by tags or groups
-
-### Import/Export
-- **Export**: Save your notes in JSON, CSV, or Markdown format
-- **Import**: Restore notes from previously exported files
-- **Backup**: Regularly export your data for safekeeping
-
-## Credits
 
 Created by Henchman CrudePixels.
