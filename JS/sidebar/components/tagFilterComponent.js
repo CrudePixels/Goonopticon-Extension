@@ -12,50 +12,49 @@ export function renderTagFilter(props) {
         selectedTags,
         onTagSelect,
         onClear,
-        highlight
+        highlight,
+        advancedFeatures = false,
     } = props;
 
     try {
         const container = document.createElement('div');
         container.className = 'tag-filter sidebar-tag-filter';
 
-        // Tag search row (input + clear)
-        const searchRow = document.createElement('div');
-        searchRow.className = 'tag-filter__search-row';
+        if (advancedFeatures) {
+            const searchRow = document.createElement('div');
+            searchRow.className = 'tag-filter__search-row';
 
-        // Tag search input
-        const searchInput = document.createElement('input');
-        searchInput.className = 'tag-filter__search';
-        searchInput.type = 'text';
-        searchInput.placeholder = 'Search...';
-        if (highlight) searchInput.value = highlight;
-        searchInput.setAttribute('aria-label', 'Search');
-        // Debounce search input (remove debounce, use Enter/blur instead)
-        searchInput.oninput = null;
-        searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && typeof props.onSearch === 'function') {
-                props.onSearch(e.target.value);
-            }
-        });
-        searchInput.addEventListener('blur', (e) => {
-            if (typeof props.onSearch === 'function') {
-                props.onSearch(e.target.value);
-            }
-        });
-        searchRow.appendChild(searchInput);
+            const searchInput = document.createElement('input');
+            searchInput.className = 'tag-filter__search';
+            searchInput.type = 'text';
+            searchInput.placeholder = 'Search...';
+            if (highlight) searchInput.value = highlight;
+            searchInput.setAttribute('aria-label', 'Search');
+            searchInput.oninput = null;
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && typeof props.onSearch === 'function') {
+                    props.onSearch(e.target.value);
+                }
+            });
+            searchInput.addEventListener('blur', (e) => {
+                if (typeof props.onSearch === 'function') {
+                    props.onSearch(e.target.value);
+                }
+            });
+            searchRow.appendChild(searchInput);
 
-        // Clear button (always rendered, but disabled if no search)
-        const clearBtn = document.createElement('button');
-        clearBtn.className = 'tag-filter__clear';
-        clearBtn.textContent = '✕';
-        clearBtn.setAttribute('aria-label', 'Clear search');
-        clearBtn.disabled = !highlight;
-        clearBtn.onclick = () => {
-            if (typeof props.onSearch === 'function') props.onSearch('');
-        };
-        searchRow.appendChild(clearBtn);
+            const clearBtn = document.createElement('button');
+            clearBtn.className = 'tag-filter__clear';
+            clearBtn.textContent = '✕';
+            clearBtn.setAttribute('aria-label', 'Clear search');
+            clearBtn.disabled = !highlight;
+            clearBtn.onclick = () => {
+                if (typeof props.onSearch === 'function') props.onSearch('');
+            };
+            searchRow.appendChild(clearBtn);
 
-        container.appendChild(searchRow);
+            container.appendChild(searchRow);
+        }
 
         // Tag list
         const tagList = document.createElement('div');
@@ -84,15 +83,16 @@ export function renderTagFilter(props) {
             container.appendChild(clearSelectedBtn);
         }
 
-        // Tag manager button
-        const tagManagerBtn = document.createElement('button');
-        tagManagerBtn.className = 'tag-filter__manager-btn';
-        tagManagerBtn.textContent = 'Manage Tags';
-        tagManagerBtn.setAttribute('aria-label', 'Open tag manager');
-        tagManagerBtn.onclick = () => {
-            if (typeof props.showTagManagerModal === 'function') props.showTagManagerModal();
-        };
-        container.appendChild(tagManagerBtn);
+        if (advancedFeatures) {
+            const tagManagerBtn = document.createElement('button');
+            tagManagerBtn.className = 'tag-filter__manager-btn';
+            tagManagerBtn.textContent = 'Manage Tags';
+            tagManagerBtn.setAttribute('aria-label', 'Open tag manager');
+            tagManagerBtn.onclick = () => {
+                if (typeof props.showTagManagerModal === 'function') props.showTagManagerModal();
+            };
+            container.appendChild(tagManagerBtn);
+        }
 
         return container;
     } catch (e) {

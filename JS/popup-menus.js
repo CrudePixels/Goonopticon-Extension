@@ -1,4 +1,5 @@
 import { LogDev } from './log.js';
+import { showHelpModal, showAboutModal } from './popup/modules/popup-help-about.js';
 import { applyTheme } from './theme-new.js';
 import { getNotes, setNotes } from './sidebar/storage.js';
 import { 
@@ -634,15 +635,15 @@ export function renderMainMenu()
 
     MenuTitle.textContent = "Menu";
     MenuContent.innerHTML = `
-        <div class="popup-buttons">
-            <button class="podawful-btn" id="toggleSidebar">Show Sidebar</button>
+        <div class="popup-buttons popup-buttons--main">
             <button class="podawful-btn" id="importExport">Import/Export</button>
             <button class="podawful-btn" id="settings">Settings</button>
             <button class="podawful-btn" id="themeSettings">Theme Settings</button>
             <button class="podawful-btn" id="changelog">Changelog</button>
             <button class="podawful-btn" id="devlog">Dev Log</button>
             <button class="podawful-btn" id="reportBug">Report Bug</button>
-            <button class="podawful-btn" id="helpAbout">Help / About</button>
+            <button class="podawful-btn" id="helpBtn">Help</button>
+            <button class="podawful-btn" id="aboutBtn">About</button>
         </div>
     `;
 
@@ -682,60 +683,6 @@ export function renderMainMenu()
         }
     });
 
-    // Sidebar toggle logic
-    const sidebarBtn = document.getElementById("toggleSidebar");
-    if (sidebarBtn)
-    {
-        browser.tabs.query({ active: true, currentWindow: true })
-            .then(tabs => {
-                if (!tabs[0]) return;
-                return browser.scripting.executeScript({
-                    target: { tabId: tabs[0].id },
-                    func: () =>
-                    {
-                        return new Promise(resolve =>
-                        {
-                            browser.storage.local.get(["PodAwful::SidebarVisible"])
-                                .then(result => {
-                                    resolve(result["PodAwful::SidebarVisible"] === true || result["PodAwful::SidebarVisible"] === "true");
-                                });
-                        });
-                    }
-                });
-            })
-            .then(results => {
-                const visible = results?.[0]?.result;
-                sidebarBtn.textContent = visible ? "Hide Sidebar" : "Show Sidebar";
-            });
-
-        sidebarBtn.addEventListener("click", () =>
-        {
-            LogDev("Sidebar toggle interaction", "interaction");
-            browser.tabs.query({ active: true, currentWindow: true })
-                .then(tabs => {
-                    if (!tabs[0]) return;
-                    return browser.scripting.executeScript({
-                        target: { tabId: tabs[0].id },
-                        func: () =>
-                        {
-                            browser.storage.local.get(["PodAwful::SidebarVisible"])
-                                .then(result => {
-                                    const visible = result["PodAwful::SidebarVisible"] === true || result["PodAwful::SidebarVisible"] === "true";
-                                    browser.storage.local.set({ "PodAwful::SidebarVisible": visible ? "false" : "true" });
-                                    // Optionally, trigger a sidebar re-render if needed
-                                    const sidebar = document.getElementById('podawful-sidebar');
-                                    if (sidebar) {
-                                        sidebar.style.display = visible ? 'none' : '';
-                                    }
-                                });
-                        }
-                    });
-                })
-                .then(() => {
-                    setTimeout(renderMainMenu, 300);
-                });
-        });
-    }
 
     document.getElementById("importExport")?.addEventListener("click", () =>
     {
@@ -767,78 +714,16 @@ export function renderMainMenu()
         LogDev("Report Bug button clicked", "interaction");
         window.open("mailto:podawfulhenchman@gmail.com?subject=PodAwful%20Bug%20Report", "_blank");
     });
-    document.getElementById("helpAbout")?.addEventListener("click", () => {
-        showHelpAboutModal();
+    document.getElementById('helpBtn')?.addEventListener('click', () => {
+        showHelpModal();
+    });
+    document.getElementById('aboutBtn')?.addEventListener('click', () => {
+        showAboutModal();
     });
 
     renderDevLogBtn();
     renderChangelogBtn();
     renderThemeSettingsBtn();
-}
-
-function showHelpAboutModal() {
-    // Remove any existing modal
-    document.getElementById('helpAboutModal')?.remove();
-    const modal = document.createElement('div');
-    modal.id = 'helpAboutModal';
-    modal.className = 'popup-modal';
-    modal.tabIndex = -1;
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('aria-modal', 'true');
-    modal.innerHTML = `
-        <div class="popup-modal__content">
-            <button class="popup-modal__close" aria-label="Close Help/About">✕</button>
-            <h2>Help and About</h2>
-            <p><strong>Goonopticon</strong> is a big and unstoppable browser extension for timestamping YouTube video.
-            <h3>Key Features</h3>
-            <ul>
-                <li>📝 Timestamped notes</li>
-                <li>🏷️ Tag system with search and filtering</li>
-                <li>📁 Group organization</li>
-                <li>📤 Import/export in JSON, CSV, and Markdown formats</li>
-                <li>🎨 Multiple themes (Default, Light, Dark, Compact)</li>
-                <li>🌐 Cross-browser support</li>
-                <li>♿ Full accessibility support with ARIA and keyboard navigation</li>
-                <li>🔄 Automatic updates with GitHub Actions</li>
-                <li>🔗 URL normalization for consistent note storage</li>
-                <li>📢 Update notifications with direct release links</li>
-            </ul>
-            
-            <h3>How to Use</h3>
-            <ol> 
-                <li>Navigate to any YouTube video page</li>
-                <li>Click the Goonopticon extension icon to open the popup menu</li>
-                <li>Use "Show Sidebar" to toggle the timestamping interface</li>
-                <li>Add notes at specific timestamps using the video player</li>
-                <li>Organize content with groups and tags for easy retrieval</li>
-                <li>Export your notes in various formats for backup or sharing</li>
-            </ol>
-            
-            
-            <h3>Credits</h3>
-            <p>Created by Henchman CrudePixels<br>
-
-            <p>Version: <span id="aboutVersion"></span></p>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    // Set version
-    const manifest = (browser && browser.runtime && browser.runtime.getManifest) ? browser.runtime.getManifest() : (chrome && chrome.runtime && chrome.runtime.getManifest ? chrome.runtime.getManifest() : null);
-    if (manifest && manifest.version) {
-        modal.querySelector('#aboutVersion').textContent = manifest.version;
-    } else {
-        // fallback: try fetch manifest.json
-        fetch('../manifest.json').then(r => r.json()).then(j => {
-            modal.querySelector('#aboutVersion').textContent = j.version || '';
-        });
-    }
-    // Close logic
-    const closeBtn = modal.querySelector('.popup-modal__close');
-    closeBtn.onclick = () => modal.remove();
-    modal.addEventListener('keydown', e => {
-        if (e.key === 'Escape') modal.remove();
-    });
-    setTimeout(() => closeBtn.focus(), 100);
 }
 
 // Cross-browser sendMessage helper

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Goonopticon — Desktop bridge</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --hud-bg: #08090a;
+            --hud-surface: #111318;
+            --hud-border: #1e242d;
+            --hud-text: #c8ccd4;
+            --hud-text-dim: #6b7280;
+            --hud-accent: #00cc66;
+            --hud-error: #cc4444;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+            background: var(--hud-bg);
+            color: var(--hud-text);
+            padding: 20px;
+            max-width: 420px;
+            margin: 0;
+            font-size: 13px;
+        }
+        h2 {
+            margin: 0 0 16px 0;
+            font-size: 12px;
+            letter-spacing: 0.15em;
+            color: var(--hud-accent);
+        }
+        .row {
+            margin-bottom: 14px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--hud-text-dim);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        input[type="number"] {
+            padding: 8px 12px;
+            width: 100px;
+            background: var(--hud-surface);
+            border: 1px solid var(--hud-border);
+            color: var(--hud-text);
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 13px;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--hud-accent);
+        }
+        .buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+        button {
+            padding: 8px 16px;
+            background: var(--hud-surface);
+            border: 1px solid var(--hud-border);
+            color: var(--hud-text);
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        button:hover {
+            border-color: var(--hud-accent);
+            color: var(--hud-accent);
+        }
+        button.primary {
+            border-color: var(--hud-accent);
+            color: var(--hud-accent);
+        }
+        #status {
+            margin-top: 14px;
+            font-size: 12px;
+            color: var(--hud-text-dim);
+            min-height: 20px;
+        }
+        #status.connected {
+            color: var(--hud-accent);
+        }
+        #status.error {
+            color: var(--hud-error);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+        .status-badge.connected {
+            background: rgba(0, 204, 102, 0.2);
+            color: var(--hud-accent);
+            border: 1px solid var(--hud-accent);
+        }
+        .status-badge.disconnected {
+            background: rgba(107, 114, 128, 0.2);
+            color: var(--hud-text-dim);
+            border: 1px solid var(--hud-border);
+        }
+    </style>
+</head>
+<body>
+    <h2>GOONOPTICON BRIDGE</h2>
+    <div id="connection-badge" class="status-badge disconnected">Checking…</div>
+    <div class="row">
+        <label for="port">Bridge port (match desktop app)</label>
+        <input type="number" id="port" min="1024" max="65535" />
+    </div>
+    <div class="buttons">
+        <button type="button" class="primary" id="save">Save</button>
+        <button type="button" id="reconnect">Reconnect</button>
+    </div>
+    <div id="status"></div>
+    <script type="module" src="../JS/bundle/bridge-options.bundle.js"></script>
+</body>
+</html>

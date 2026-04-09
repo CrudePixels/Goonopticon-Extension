@@ -27,7 +27,9 @@ document.addEventListener("DOMContentLoaded", async () =>
         
         // Only render the menu after the theme is applied
         renderMainMenu();
-        
+
+        initBridgeStrip();
+
         // Load version and check for updates
         loadVersion();
         checkForUpdates();
@@ -36,6 +38,7 @@ document.addEventListener("DOMContentLoaded", async () =>
         // Fallback to default theme
         await applyTheme("default");
         renderMainMenu();
+        initBridgeStrip();
         loadVersion();
         checkForUpdates();
     }
@@ -57,6 +60,8 @@ browser.storage.onChanged.addListener((changes, area) =>
         // Apply regular theme changes
         const theme = changes["PodAwful::Theme"].newValue || "default";
         applyTheme(theme);
+    } else if (area === "local" && changes.goonopticonBridgeConnected) {
+        refreshBridgeStrip();
     }
 });
 
@@ -100,6 +105,29 @@ function hideUpdateIndicator() {
 }
 
 // Load version from manifest
+async function refreshBridgeStrip() {
+    const badge = document.getElementById('bridgeBadge');
+    if (!badge) return;
+    try {
+        const res = await browser.runtime.sendMessage({ action: 'goonopticonBridgeGetStatus' });
+        badge.textContent = res.connected ? '[ LINK ]' : '[ OFFLINE ]';
+        badge.classList.toggle('popup-bridge-badge--on', !!res.connected);
+        badge.classList.toggle('popup-bridge-badge--off', !res.connected);
+    } catch {
+        badge.textContent = '[ OFFLINE ]';
+        badge.classList.add('popup-bridge-badge--off');
+        badge.classList.remove('popup-bridge-badge--on');
+    }
+}
+
+function initBridgeStrip() {
+    const btn = document.getElementById('bridgeOptionsBtn');
+    btn?.addEventListener('click', () => {
+        browser.runtime.openOptionsPage();
+    });
+    refreshBridgeStrip();
+}
+
 async function loadVersion() {
     try {
         const manifest = browser.runtime.getManifest();

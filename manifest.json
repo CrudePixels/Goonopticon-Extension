@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Goonopticon",
-  "version": "2.5.0",
-  "description": "Podawful Goonopticon tool for timestamping Youtube videos, Henchmen get to work!",
+  "version": "2.6.0",
+  "description": "Podawful Goonopticon tool for timestamping Youtube videos, Henchmen get to work! Includes desktop bridge for Jump-to-time on the active tab.",
   "permissions": [
     "tabs",
     "activeTab",
@@ -11,8 +11,13 @@
     "notifications"
   ],
   "host_permissions": [
-    "https://www.youtube.com/*"
+    "https://www.youtube.com/*",
+    "<all_urls>"
   ],
+  "options_ui": {
+    "page": "HTML/bridge-options.html",
+    "open_in_tab": false
+  },
   "action": {
     "default_popup": "HTML/popup.html",
     "default_icon": {

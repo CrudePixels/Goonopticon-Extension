@@ -1239,10 +1239,11 @@ html.apply-to-menus button.podawful-btn:hover {
     {
         right: 12px;
         bottom: 12px;
-        min-width: 100px;
-        max-width: 140px;
-        padding: 10px 16px;
-        font-size: 13px;
+        min-width: 44px;
+        max-width: 52px;
+        width: 48px;
+        height: 48px;
+        padding: 6px;
     }
 
     .sidebar__header
@@ -1287,10 +1288,12 @@ html.apply-to-menus button.podawful-btn:hover {
     }
 }
 
-/* === SHOW SIDEBAR BUTTON === */
+/* === SHOW SIDEBAR BUTTON (floating logo) === */
 #podawful-show-sidebar-btn
 {
-    display: block !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
     position: fixed;
     right: 20px;
     bottom: 20px;
@@ -1299,20 +1302,28 @@ html.apply-to-menus button.podawful-btn:hover {
     color: var(--button-fg, #e0e0e0);
     border: 2px solid var(--accent, #FFD600);
     border-radius: 12px;
-    padding: 12px 24px;
-    font-size: 14px;
-    font-weight: 600;
+    padding: 8px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    min-width: 120px;
-    max-width: 200px;
+    min-width: 48px;
+    width: 48px;
+    height: 48px;
+    max-width: 56px;
     backdrop-filter: blur(10px);
+}
+
+#podawful-show-sidebar-btn .podawful-show-sidebar-btn__img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    border-radius: 6px;
+    pointer-events: none;
 }
 
 #podawful-show-sidebar-btn:hover {
     background: var(--button-hover-bg, #333);
-    color: var(--button-hover-fg, #FFD600);
     border-color: var(--accent, #FFD600);
     box-shadow: 0 6px 20px rgba(0,0,0,0.4);
     transform: translateY(-2px);
@@ -1320,10 +1331,38 @@ html.apply-to-menus button.podawful-btn:hover {
 
 #podawful-show-sidebar-btn:active {
     background: var(--accent, #FFD600);
-    color: var(--primary-bg, #1a1a1a);
     border-color: var(--primary-bg, #1a1a1a);
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     transform: translateY(0);
+}
+
+/* YouTube player bar: keep inside chrome (no fixed/stacking escape) */
+#movie_player .goonopticon-ytp-show-sidebar,
+#shorts-player .goonopticon-ytp-show-sidebar {
+    position: relative !important;
+    z-index: auto !important;
+    float: none !important;
+    opacity: 0.95;
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+}
+
+#movie_player .goonopticon-ytp-show-sidebar:hover,
+#shorts-player .goonopticon-ytp-show-sidebar:hover {
+    opacity: 1;
+}
+
+#movie_player .goonopticon-ytp-show-sidebar-img,
+#shorts-player .goonopticon-ytp-show-sidebar-img {
+    width: 22px;
+    height: 22px;
+    display: block;
+    border-radius: 4px;
+    pointer-events: none;
+    vertical-align: middle;
 }
 
 /* === UTILITY CLASSES === */
@@ -1577,6 +1616,21 @@ body:not(.sidebar-visible) {
     color: var(--sidebar-bg, #1a1a1a) !important;
     transform: translateY(-1px) !important;
     box-shadow: 0 -3px 12px rgba(255,214,0,0.3) !important;
+}
+
+/* Quote / site link when shown under title (swapped with Hide Sidebar) */
+.sidebar__podawful-link--header {
+    order: unset !important;
+    width: 90% !important;
+    max-width: 280px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 8px !important;
+}
+
+.sidebar__header .sidebar__podawful-link--header:hover {
+    box-shadow: 0 3px 12px rgba(255, 214, 0, 0.3) !important;
 }
 
 .sidebar__header > button {

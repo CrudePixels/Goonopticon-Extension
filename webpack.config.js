@@ -5,7 +5,8 @@ module.exports = {
     entry: {
         'sidebar.bundle': './JS/sidebar/main.js',
         'popup.bundle': './JS/popup.js',
-        'background': './JS/background.js'
+        'background': './JS/background.js',
+        'bridge-options.bundle': './JS/bridge-options.js',
     },
     output: {
         filename: '[name].js',

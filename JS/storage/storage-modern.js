@@ -16,6 +16,7 @@ export const STORAGE_KEYS = {
     NOTE_SEARCH: "PodAwful::NoteSearch",
     PINNED_GROUPS: "PodAwful::PinnedGroups",
     LOCKED: "PodAwful::Locked",
+    ADVANCED_FEATURES: "PodAwful::AdvancedFeatures",
     DEVLOG: "PodAwful::DevLog",
     UNDO: "PodAwful::Undo",
     SCHEMA_VERSION: "PodAwful::SchemaVersion",

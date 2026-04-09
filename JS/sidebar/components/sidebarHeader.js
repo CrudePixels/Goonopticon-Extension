@@ -3,6 +3,7 @@ import { LogDev } from '../../log.js';
 import * as browser from 'webextension-polyfill';
 import { renderTagFilter } from './tagFilterComponent.js';
 import { getAllTags } from '../logic.js';
+import quotesRaw from '../../../Resources/Quotes.txt';
 
 /**
  * Renders the sidebar header.
@@ -58,24 +59,54 @@ export function renderSidebarHeader(props) {
         divider1.className = 'sidebar-divider';
         header.appendChild(divider1);
 
-        // --- Hide Sidebar Button ---
-        const hideBtn = document.createElement('button');
-        hideBtn.className = 'sidebar__action-btn';
-        hideBtn.textContent = 'Hide Sidebar';
-        hideBtn.style.display = 'block';
-        hideBtn.style.margin = '0 auto 12px auto';
-        hideBtn.style.maxWidth = '200px';
-        hideBtn.onclick = () => {
-            browser.storage.local.set({ "PodAwful::SidebarVisible": "false" }).then(() => {
-                const sidebar = document.getElementById('podawful-sidebar');
-                if (sidebar) {
-                    sidebar.classList.add('sidebar-hide');
-                    sidebar.style.display = 'none';
+        // --- Website / quote button (swapped from footer) ---
+        const quotes = quotesRaw.split('\n').map((q) => q.trim()).filter(Boolean);
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        const websiteButton = document.createElement('button');
+        websiteButton.className = 'sidebar__podawful-link sidebar__podawful-link--header';
+        websiteButton.textContent = randomQuote;
+        websiteButton.title = 'Choose Website';
+        websiteButton.type = 'button';
+        websiteButton.style.textAlign = 'center';
+        websiteButton.style.padding = '10px 16px';
+        websiteButton.style.color = 'var(--accent, #FFD600)';
+        websiteButton.style.fontSize = '1.1em';
+        websiteButton.style.fontWeight = '600';
+        websiteButton.style.borderRadius = '8px';
+        websiteButton.style.backgroundColor = 'rgba(255,214,0,0.08)';
+        websiteButton.style.border = '1.5px solid var(--accent, #FFD600)';
+        websiteButton.style.userSelect = 'text';
+        websiteButton.style.textDecoration = 'none';
+        websiteButton.style.transition = 'all 0.2s ease';
+        websiteButton.style.cursor = 'pointer';
+        websiteButton.style.margin = '0 auto 12px auto';
+        websiteButton.style.display = 'block';
+        websiteButton.addEventListener('mouseenter', () => {
+            websiteButton.style.backgroundColor = 'var(--accent, #FFD600)';
+            websiteButton.style.color = 'var(--sidebar-bg, #1a1a1a)';
+        });
+        websiteButton.addEventListener('mouseleave', () => {
+            websiteButton.style.backgroundColor = 'rgba(255,214,0,0.08)';
+            websiteButton.style.color = 'var(--accent, #FFD600)';
+        });
+        websiteButton.onclick = async () => {
+            if (typeof window.showTwoChoiceModal === 'function') {
+                const choice = await window.showTwoChoiceModal({
+                    title: 'Choose Website',
+                    message: 'Which website would you like to visit?',
+                    option1: '🌐 Visit Podawful.com',
+                    option2: '⚡ Visit Awful.tech',
+                });
+                if (choice === '🌐 Visit Podawful.com') {
+                    window.open('https://podawful.com', '_blank', 'noopener,noreferrer');
+                } else if (choice === '⚡ Visit Awful.tech') {
+                    window.open('https://awful.tech', '_blank', 'noopener,noreferrer');
                 }
-                document.body.classList.remove('sidebar-visible');
-            });
+            } else {
+                window.open('https://podawful.com', '_blank', 'noopener,noreferrer');
+            }
         };
-        header.appendChild(hideBtn);
+        header.appendChild(websiteButton);
 
         // --- Tag Filter Section ---
         const filterSection = document.createElement('div');
@@ -94,7 +125,8 @@ export function renderSidebarHeader(props) {
             onClear: onClearTags,
             onSearch: onTagSearch,
             showTagManagerModal: showTagManagerModal,
-            highlight: props.searchValue || ''
+            highlight: props.searchValue || '',
+            advancedFeatures: props.advancedFeatures === true,
         });
         
         filterSection.appendChild(tagFilter);

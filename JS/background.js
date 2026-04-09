@@ -1,11 +1,20 @@
 ﻿import { LogDev } from './log.js';
 import * as browser from 'webextension-polyfill';
+import {
+    initGoonopticonBridge,
+    handleBridgeMessage,
+    connectBridge,
+} from './goonopticon-bridge.js';
 
 // Listen for devlog messages from any context and store them in browser.storage.local
 browser.runtime.onMessage.addListener((msg, sender, sendResponse) =>
 {
     LogDev("Received message in background: " + JSON.stringify(msg), "event");
-    
+
+    if (handleBridgeMessage(msg, sendResponse)) {
+        return true;
+    }
+
     // Handle devlog messages
     if (msg && msg.type === "devlog" && msg.entry)
     {
@@ -109,7 +118,9 @@ async function checkForUpdates(forceCheck = false) {
         });
         
         // Check GitHub for latest release
-        const response = await fetch('https://api.github.com/repos/CrudePixels/Goonopticon/releases/latest');
+        const response = await fetch(
+            'https://api.github.com/repos/CrudePixels/Goonopticon-Extension/releases/latest',
+        );
         if (!response.ok) {
             LogDev("Failed to fetch release info: " + response.status, "error");
             return;
@@ -184,3 +195,5 @@ function isNewerVersion(version1, version2) {
 
 // Check for updates on startup
 checkForUpdates();
+
+initGoonopticonBridge();

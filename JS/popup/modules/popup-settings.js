@@ -30,6 +30,11 @@ export function renderSettings() {
                 <input type="checkbox" id="enableBulkActions" style="margin: 0;">
                 <span>Enable Bulk Actions</span>
             </label>
+            <label style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="advancedFeatures" style="margin: 0;">
+                <span>Advanced features</span>
+            </label>
+            <p style="margin: 0; font-size: 12px; opacity: 0.85;">Advanced features show search, tag manager, add group, and lock in the sidebar.</p>
         </div>
         <button class="podawful-btn" id="backBtn" style="margin-top: 20px;">Back</button>
     `;
@@ -59,6 +64,10 @@ export function renderSettings() {
     document.getElementById("enableBulkActions")?.addEventListener("change", (e) => {
         saveSetting("PodAwful::EnableBulkActions", e.target.checked);
     });
+
+    document.getElementById("advancedFeatures")?.addEventListener("change", (e) => {
+        saveSetting("PodAwful::AdvancedFeatures", e.target.checked);
+    });
 }
 
 // Load settings
@@ -67,7 +76,8 @@ function loadSettings() {
         { key: "PodAwful::ShowDevLogBtn", elementId: "showDevLogBtn", defaultValue: false },
         { key: "PodAwful::ShowChangelogBtn", elementId: "showChangelogBtn", defaultValue: false },
         { key: "PodAwful::ShowHotkeysBtn", elementId: "showHotkeysBtn", defaultValue: false },
-        { key: "PodAwful::EnableBulkActions", elementId: "enableBulkActions", defaultValue: false }
+        { key: "PodAwful::EnableBulkActions", elementId: "enableBulkActions", defaultValue: false },
+        { key: "PodAwful::AdvancedFeatures", elementId: "advancedFeatures", defaultValue: false },
     ];
 
     settings.forEach(setting => {

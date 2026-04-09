@@ -17,7 +17,12 @@ import { showInputModal } from './modal.js';
 import * as browser from 'webextension-polyfill';
 
 import { startHighlightingTimestamps, stopHighlightingTimestamps } from './dragdrop.js';
-import quotesRaw from '../../Resources/Quotes.txt';
+import {
+    setYouTubeShowSidebarControlActive,
+    removeYouTubeShowSidebarControl,
+    stopYouTubeShowSidebarObserver,
+    isYouTubeWatchLike,
+} from './youtube-show-sidebar-inject.js';
 
 // Add a global to track the current error message
 let currentSidebarError = null;
@@ -130,10 +135,15 @@ export function renderSidebar(Container, overrideSelectedTags, forceHeaderRerend
         getLockedPromise(),
         new Promise(Resolve => getTagFilter((err, data) => Resolve(Array.isArray(data) ? data : []))),
         new Promise(Resolve => getNoteSearch((err, data) => Resolve(data))),
-        browser.storage.local.get(['PodAwful::EnableBulkActions']).then(result => result['PodAwful::EnableBulkActions'] === true)
-    ]).then(([Notes, PinnedGroups, Compact, Theme, SidebarVisible, Locked, SelectedTags, Search, BulkActionsEnabled]) =>
+        browser.storage.local.get(['PodAwful::EnableBulkActions', 'PodAwful::AdvancedFeatures']).then((result) => ({
+            bulkActionsEnabled: result['PodAwful::EnableBulkActions'] === true,
+            advancedFeatures: result['PodAwful::AdvancedFeatures'] === true,
+        })),
+    ]).then(([Notes, PinnedGroups, Compact, Theme, SidebarVisible, Locked, SelectedTags, Search, flags]) =>
     {
-        LogDev('[Sidebar] Data loaded: ' + JSON.stringify({ Notes, PinnedGroups, Compact, Theme, SidebarVisible, Locked, SelectedTags, Search }), 'data');
+        const BulkActionsEnabled = flags.bulkActionsEnabled;
+        const AdvancedFeatures = flags.advancedFeatures;
+        LogDev('[Sidebar] Data loaded: ' + JSON.stringify({ Notes, PinnedGroups, Compact, Theme, SidebarVisible, Locked, SelectedTags, Search, AdvancedFeatures }), 'data');
         if (overrideSelectedTags)
         {
             SelectedTags = overrideSelectedTags;
@@ -333,96 +343,120 @@ export function renderSidebar(Container, overrideSelectedTags, forceHeaderRerend
                 });
             }
 
+            function formatCurrentVideoTime() {
+                const v = document.querySelector('video');
+                if (!v) return '';
+                const seconds = Math.floor(v.currentTime);
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                const s = seconds % 60;
+                return h > 0
+                    ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+                    : `${m}:${s.toString().padStart(2, '0')}`;
+            }
+
+            function validateTimestampField(val) {
+                if (!val || !val.trim()) return true;
+                const trimmed = val.trim();
+                if (!/^[\d:]+$/.test(trimmed)) {
+                    return 'Timestamp can only contain numbers and colons (e.g., 1:23 or 1:23:45)';
+                }
+                if (!/^(\d+|\d+:\d+|\d+:\d+:\d+)$/.test(trimmed)) {
+                    return 'Invalid timestamp format. Use format like 1:23 or 1:23:45';
+                }
+                return true;
+            }
+
+            function normalizeTimestampString(noteTime) {
+                let parsedTime = noteTime.trim();
+                if (/^\d+$/.test(parsedTime)) {
+                    const sec = parseInt(parsedTime, 10);
+                    const h = Math.floor(sec / 3600);
+                    const m = Math.floor((sec % 3600) / 60);
+                    const s = sec % 60;
+                    parsedTime =
+                        h > 0
+                            ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+                            : `${m}:${s.toString().padStart(2, '0')}`;
+                }
+                return parsedTime;
+            }
+
+            function defaultGroupName() {
+                let groupName = 'Default';
+                if (AllGroupsSanitized && AllGroupsSanitized.length > 0) {
+                    groupName =
+                        typeof AllGroupsSanitized[0] === 'string'
+                            ? AllGroupsSanitized[0]
+                            : AllGroupsSanitized[0].name ||
+                              AllGroupsSanitized[0].groupName ||
+                              AllGroupsSanitized[0].title ||
+                              String(AllGroupsSanitized[0]);
+                }
+                return String(groupName);
+            }
+
             async function onAddNote() {
                 if (Locked) return;
-                const noteText = await window.showInputModal({
+                if (typeof window.showAddNoteModal !== 'function') {
+                    showSidebarError('Add note dialog unavailable. Reload the page.');
+                    return;
+                }
+                const currentTime = formatCurrentVideoTime();
+                const timeLabel = currentTime
+                    ? `Timestamp (optional — clear for text-only; prefilled with current: ${currentTime})`
+                    : 'Timestamp (optional — clear for text-only note):';
+                const timePlaceholder = currentTime
+                    ? `e.g. 1:23 or edit (current: ${currentTime})`
+                    : 'e.g. 1:23 or 1:23:45';
+
+                const result = await window.showAddNoteModal({
                     title: 'Add Note',
-                    label: 'Note text:',
-                    placeholder: 'Enter note text',
-                    validate: val => val.trim() ? true : 'Note text cannot be empty.'
+                    noteLabel: 'Note text:',
+                    notePlaceholder: 'Enter note text',
+                    timeLabel,
+                    timePlaceholder,
+                    initialTime: currentTime || '',
+                    validate: ({ text, time }) => {
+                        if (!text || !text.trim()) return 'Note text cannot be empty.';
+                        return validateTimestampField(time);
+                    },
                 });
-                if (!noteText || !noteText.trim()) return;
+                if (!result) return;
+
+                const { text: noteText, timeRaw } = result;
+                const groupName = defaultGroupName();
+                let timeField = timeRaw;
+
+                if (!timeField) {
+                    const note = {
+                        id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+                        text: noteText,
+                        time: '',
+                        group: groupName,
+                        tags: [],
+                    };
+                    addNote(note, (err) => {
+                        if (err) {
+                            showSidebarError('Failed to add note.');
+                            return;
+                        }
+                        renderSidebar(Container);
+                    });
+                    return;
+                }
+
+                const parsedTime = normalizeTimestampString(timeField);
                 const note = {
                     id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-                    text: noteText.trim(),
-                    time: '',
-                    group: AllGroupsSanitized && AllGroupsSanitized[0] ? AllGroupsSanitized[0] : 'Default',
-                    tags: []
+                    text: noteText,
+                    time: parsedTime,
+                    group: groupName,
+                    tags: [],
                 };
                 addNote(note, (err) => {
                     if (err) {
                         showSidebarError('Failed to add note.');
-                        return;
-                    }
-                    renderSidebar(Container);
-                });
-            }
-
-            async function onAddTimestamp() {
-                if (Locked) return;
-                // Get note text
-                let noteText = await window.showInputModal({
-                    title: 'Add Timestamped Note',
-                    label: 'Note text:',
-                    placeholder: 'Enter note text',
-                    validate: val => val.trim() ? true : 'Note text cannot be empty.'
-                });
-                if (!noteText || !noteText.trim()) return;
-                // Get current video time
-                let currentTime = '';
-                const v = document.querySelector('video');
-                if (v) {
-                    const seconds = Math.floor(v.currentTime);
-                    const h = Math.floor(seconds / 3600);
-                    const m = Math.floor((seconds % 3600) / 60);
-                    const s = seconds % 60;
-                    currentTime = h > 0 ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}` : `${m}:${s.toString().padStart(2, '0')}`;
-                }
-                // Get timestamp
-                let noteTime = await window.showInputModal({
-                    title: 'Timestamp',
-                    label: currentTime ? `Timestamp (leave blank to use current video time: ${currentTime})` : 'Timestamp (e.g., 1:23 or 1:23:45):',
-                    placeholder: currentTime ? `e.g., 1:23 or 1:23:45 (current: ${currentTime})` : 'e.g., 1:23 or 1:23:45',
-                    validate: val => {
-                        if (!val || !val.trim()) return true; // Allow empty (will use current time)
-                        const trimmed = val.trim();
-                        // Allow only numbers and colons (e.g., 1:23, 1:23:45, or just 123)
-                        if (!/^[\d:]+$/.test(trimmed)) {
-                            return 'Timestamp can only contain numbers and colons (e.g., 1:23 or 1:23:45)';
-                        }
-                        // Basic format validation - should be like 1:23 or 1:23:45 or just numbers
-                        if (!/^(\d+|\d+:\d+|\d+:\d+:\d+)$/.test(trimmed)) {
-                            return 'Invalid timestamp format. Use format like 1:23 or 1:23:45';
-                        }
-                        return true;
-                    }
-                });
-                if (!noteTime || !noteTime.trim()) noteTime = currentTime;
-                if (!noteTime || !noteTime.trim()) return;
-                // Parse noteTime: if it's a number, treat as seconds
-                let parsedTime = noteTime.trim();
-                if (/^\d+$/.test(parsedTime)) {
-                    const seconds = parseInt(parsedTime, 10);
-                    const h = Math.floor(seconds / 3600);
-                    const m = Math.floor((seconds % 3600) / 60);
-                    const s = seconds % 60;
-                    parsedTime = h > 0 ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}` : `${m}:${s.toString().padStart(2, '0')}`;
-                }
-                let groupName = 'Default';
-                if (AllGroupsSanitized && AllGroupsSanitized.length > 0) {
-                    groupName = typeof AllGroupsSanitized[0] === 'string' ? AllGroupsSanitized[0] : (AllGroupsSanitized[0].name || AllGroupsSanitized[0].groupName || AllGroupsSanitized[0].title || String(AllGroupsSanitized[0]));
-                }
-                groupName = String(groupName);
-                const note = {
-                    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-                    text: noteText.trim(),
-                    time: parsedTime,
-                    group: groupName,
-                    tags: []
-                };
-                addNote(note, (err) => {
-                    if (err) {
-                        showSidebarError('Failed to add timestamped note.');
                         return;
                     }
                     renderSidebar(Container);
@@ -575,7 +609,8 @@ export function renderSidebar(Container, overrideSelectedTags, forceHeaderRerend
                 selectedTags: SelectedTags,
                 onTagSelect,
                 onTagSearch,
-                onClearTags
+                onClearTags,
+                advancedFeatures: AdvancedFeatures,
             });
             Container.appendChild(header);
 
@@ -608,17 +643,17 @@ export function renderSidebar(Container, overrideSelectedTags, forceHeaderRerend
             body.style.flex = '1'; // Expand to fill available space
             Container.appendChild(body);
 
-            const footer = renderSidebarFooter({ 
-                Locked, 
-                Container, 
-                RenderSidebar: renderSidebar, 
-                onAddNote, 
+            const footer = renderSidebarFooter({
+                Locked,
+                Container,
+                RenderSidebar: renderSidebar,
+                onAddNote,
                 onClearAll,
                 onAddGroup,
-                onAddTimestamp,
                 onLockToggle,
                 locked: Locked,
-                groups: AllGroupsSanitized
+                groups: AllGroupsSanitized,
+                advancedFeatures: AdvancedFeatures,
             });
             Container.appendChild(footer);
 
@@ -696,57 +731,66 @@ export function updateSidebarBody(Container, Notes, SelectedTags, Search, Pinned
     }
 }
 
-// Floating "Show Sidebar" button logic
-function updateShowSidebarButton()
-{
+function performShowSidebar() {
+    browser.storage.local.set({ 'PodAwful::SidebarVisible': 'true' }).then(() => {
+        let sb = document.getElementById('podawful-sidebar');
+        if (!sb) {
+            sb = document.createElement('div');
+            sb.id = 'podawful-sidebar';
+            sb.className = 'podawful-sidebar';
+            document.body.appendChild(sb);
+        }
+        sb.classList.remove('sidebar-hide');
+        sb.style.display = '';
+        document.body.classList.add('sidebar-visible');
+        renderSidebar(sb);
+        document.getElementById('podawful-show-sidebar-btn')?.remove();
+        removeYouTubeShowSidebarControl();
+        stopYouTubeShowSidebarObserver();
+    });
+}
+
+// Floating "Show Sidebar" button + YouTube player control
+function updateShowSidebarButton() {
     const sidebar = document.getElementById('podawful-sidebar');
     let showBtn = document.getElementById('podawful-show-sidebar-btn');
-    const isHidden = !sidebar || sidebar.classList.contains('sidebar-hide') || sidebar.style.display === 'none';
+    const isHidden =
+        !sidebar || sidebar.classList.contains('sidebar-hide') || sidebar.style.display === 'none';
 
-    if (isHidden)
-    {
-        if (!showBtn)
-        {
+    const useYtChromeOnly = isYouTubeWatchLike();
+
+    if (isHidden) {
+        if (useYtChromeOnly) {
+            showBtn?.remove();
+        } else if (!showBtn) {
             showBtn = document.createElement('button');
             showBtn.id = 'podawful-show-sidebar-btn';
-            showBtn.textContent = 'Show Sidebar';
+            showBtn.type = 'button';
             showBtn.className = 'sidebar__action-btn sidebar__action-btn--floating';
 
-            // Get the current theme from body or sidebar
-            let themeClass = Array.from(document.body.classList).find(cls => /-theme$/.test(cls));
-            if (!themeClass && sidebar)
-            {
-                themeClass = Array.from(sidebar.classList).find(cls => /-theme$/.test(cls));
+            const img = document.createElement('img');
+            img.src = browser.runtime.getURL('Resources/icon-48.png');
+            img.alt = 'Goonopticon';
+            img.draggable = false;
+            img.className = 'podawful-show-sidebar-btn__img';
+            showBtn.appendChild(img);
+
+            let themeClass = Array.from(document.body.classList).find((cls) => /-theme$/.test(cls));
+            if (!themeClass && sidebar) {
+                themeClass = Array.from(sidebar.classList).find((cls) => /-theme$/.test(cls));
             }
-            if (themeClass)
-            {
+            if (themeClass) {
                 showBtn.classList.add(themeClass);
             }
 
-            showBtn.setAttribute('aria-label', 'Show Sidebar');
-            showBtn.onclick = () =>
-            {
-                browser.storage.local.set({ "PodAwful::SidebarVisible": "true" }).then(() => {
-                    let sidebar = document.getElementById('podawful-sidebar');
-                    if (!sidebar)
-                    {
-                        sidebar = document.createElement('div');
-                        sidebar.id = 'podawful-sidebar';
-                        sidebar.className = 'podawful-sidebar';
-                        document.body.appendChild(sidebar);
-                    }
-                    sidebar.classList.remove('sidebar-hide');
-                    sidebar.style.display = '';
-                    document.body.classList.add('sidebar-visible');
-                    renderSidebar(sidebar);
-                    showBtn.remove();
-                });
-            };
+            showBtn.setAttribute('aria-label', 'Show Goonopticon sidebar');
+            showBtn.addEventListener('click', () => performShowSidebar());
             document.body.appendChild(showBtn);
         }
-    } else if (showBtn)
-    {
-        showBtn.remove();
+        setYouTubeShowSidebarControlActive(useYtChromeOnly, performShowSidebar);
+    } else {
+        showBtn?.remove();
+        setYouTubeShowSidebarControlActive(false, performShowSidebar);
     }
 }
 

@@ -331,6 +331,25 @@ body.popup.custom-theme.apply-to-menus .add-timestamp-btn:hover {
     outline-offset: 2px;
 }
 
+/* Main popup menu: larger buttons */
+.popup-buttons--main {
+    gap: 14px;
+    padding: 16px 20px 22px;
+}
+
+.popup-buttons--main .podawful-btn {
+    min-height: 52px;
+    padding: 16px 22px;
+    font-size: 1.08rem;
+}
+
+body.popup.custom-theme .popup-buttons--main .podawful-btn {
+    min-height: 52px;
+    height: auto;
+    font-size: max(1rem, var(--custom-buttonFontSize, 16px));
+    padding: 16px 22px;
+}
+
 /* === Popup Menu === */
 .popup-menu-title
 {
@@ -424,6 +443,46 @@ body.popup.custom-theme.apply-to-menus .add-timestamp-btn:hover {
     font-size: 1em;
 }
 
+.popup-modal__content--compact {
+    max-width: 340px;
+    padding: 18px 20px 20px;
+}
+
+.popup-help-list {
+    margin: 0 0 0 1.1em;
+    padding: 0;
+    line-height: 1.45;
+}
+
+.popup-help-list li {
+    margin-bottom: 10px;
+}
+
+.popup-about-lead {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.popup-about-meta,
+.popup-about-credit {
+    margin: 6px 0;
+    font-size: 0.95em;
+}
+
+.popup-about-links {
+    margin: 14px 0 0;
+    font-size: 0.95em;
+}
+
+.popup-about-links a {
+    color: var(--accent, #c9a000);
+    font-weight: 600;
+}
+
+body.popup.custom-theme .popup-about-links a {
+    color: var(--custom-primary, var(--accent, #FFD600));
+}
+
 /* === Update Indicator === */
 .update-indicator {
     position: absolute;
@@ -449,4 +508,50 @@ body.popup.custom-theme.apply-to-menus .add-timestamp-btn:hover {
     background: var(--accent-hover, #FFE066);
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* === Desktop bridge (Goonopticon app WebSocket) === */
+.popup-bridge-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.popup-bridge-badge {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    font-family: ui-monospace, monospace;
+}
+
+.popup-bridge-badge--on {
+    color: var(--custom-primary, #00aa55);
+}
+
+.popup-bridge-badge--off {
+    color: var(--secondary-fg, #6b7280);
+}
+
+.popup-bridge-btn {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border, #ccc);
+    background: var(--secondary-bg, #f0f0f0);
+    color: var(--primary-fg, #222);
+    cursor: pointer;
+}
+
+.popup-bridge-btn:hover {
+    border-color: var(--accent, #ffd600);
+    color: var(--accent, #b8860b);
+}
+
+body.popup.custom-theme .popup-bridge-btn {
+    background: var(--custom-surface, var(--secondary-bg, #f0f0f0));
+    border-color: var(--custom-border, var(--border, #ccc));
+    color: var(--custom-text, var(--primary-fg, #222));
 }

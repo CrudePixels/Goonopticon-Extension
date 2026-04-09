@@ -1,81 +1,80 @@
 import { LogDev } from '../../log.js';
 import browser from 'webextension-polyfill';
 
+export const GOONOPTICON_REPO_URL = 'https://github.com/CrudePixels/Goonopticon-Extension';
+
+function wireModal(modal) {
+    const closeBtn = modal.querySelector('.popup-modal__close');
+    closeBtn?.addEventListener('click', () => modal.remove());
+    modal.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') modal.remove();
+    });
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+    setTimeout(() => closeBtn?.focus(), 50);
+}
+
 /**
- * Shows the help/about modal
+ * Short usage tips (replaces long combined Help/About copy).
  */
-export function showHelpAboutModal() {
-    // Remove any existing modal
-    document.getElementById('helpAboutModal')?.remove();
+export function showHelpModal() {
+    LogDev('Help modal opened', 'interaction');
+    document.getElementById('goonPopupHelpModal')?.remove();
     const modal = document.createElement('div');
-    modal.id = 'helpAboutModal';
+    modal.id = 'goonPopupHelpModal';
     modal.className = 'popup-modal';
     modal.tabIndex = -1;
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
     modal.innerHTML = `
-        <div class="popup-modal__content">
-            <button class="popup-modal__close" aria-label="Close Help/About">✕</button>
-            <h2>Help and About</h2>
-            <p><strong>Goonopticon</strong> is a big and unstoppable browser extension for timestamping YouTube video.
-            <h3>Key Features</h3>
-            <ul>
-                <li>📝 Timestamped notes</li>
-                <li>🏷️ Tag system with search and filtering</li>
-                <li>📁 Group organization</li>
-                <li>📤 Import/export in JSON, CSV, and Markdown formats</li>
-                <li>🎨 Multiple themes (Default, Light, Dark, Compact)</li>
-                <li>🌐 Cross-browser support</li>
-                <li>♿ Full accessibility support with ARIA and keyboard navigation</li>
-                <li>🔄 Automatic updates with GitHub Actions</li>
-                <li>🔗 URL normalization for consistent note storage</li>
-                <li>📢 Update notifications with direct release links</li>
+        <div class="popup-modal__content popup-modal__content--compact">
+            <button type="button" class="popup-modal__close" aria-label="Close">✕</button>
+            <h2>Help</h2>
+            <ul class="popup-help-list">
+                <li>On a <strong>YouTube</strong> watch page, the sidebar lists your notes for that video.</li>
+                <li>If the sidebar is hidden, use the <strong>Goonopticon icon</strong> in the player controls (or the floating button on non-watch pages).</li>
+                <li><strong>+ Note</strong> — enter text and an optional timestamp in one dialog.</li>
+                <li><strong>Settings</strong> — themes, desktop bridge port, and <strong>Advanced features</strong> (search, tags, groups, lock).</li>
             </ul>
-            
-            <h3>How to Use</h3>
-            <ol> 
-                <li>Navigate to any YouTube video page</li>
-                <li>Click the Goonopticon extension icon to open the popup menu</li>
-                <li>Use "Show Sidebar" to toggle the timestamping interface</li>
-                <li>Add notes at specific timestamps using the video player</li>
-                <li>Organize content with groups and tags for easy retrieval</li>
-                <li>Export your notes in various formats for backup or sharing</li>
-            </ol>
-            
-            <h3>Credits</h3>
-            <p>Created by Henchman CrudePixels<br>
-            <p>Version: <span id="aboutVersion"></span></p>
         </div>
     `;
     document.body.appendChild(modal);
-    
-    // Set version
+    wireModal(modal);
+}
+
+/**
+ * Version, credit, repo link.
+ */
+export function showAboutModal() {
+    LogDev('About modal opened', 'interaction');
+    document.getElementById('goonPopupAboutModal')?.remove();
+    const modal = document.createElement('div');
+    modal.id = 'goonPopupAboutModal';
+    modal.className = 'popup-modal';
+    modal.tabIndex = -1;
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
     const manifest = browser.runtime.getManifest();
-    const versionSpan = document.getElementById('aboutVersion');
-    if (versionSpan && manifest.version) {
-        versionSpan.textContent = `v${manifest.version}`;
+    const ver = manifest?.version ? `v${manifest.version}` : '';
+    modal.innerHTML = `
+        <div class="popup-modal__content popup-modal__content--compact">
+            <button type="button" class="popup-modal__close" aria-label="Close">✕</button>
+            <h2>About</h2>
+            <p class="popup-about-lead"><strong>Goonopticon</strong> — YouTube timestamp notes, groups, and tags.</p>
+            <p class="popup-about-meta">Version <strong id="aboutVersionSpan">${ver}</strong></p>
+            <p class="popup-about-credit">Henchman CrudePixels</p>
+            <p class="popup-about-links">
+                <a href="${GOONOPTICON_REPO_URL}" target="_blank" rel="noopener noreferrer">GitHub</a>
+                ·
+                <a href="${GOONOPTICON_REPO_URL}/releases/latest" target="_blank" rel="noopener noreferrer">Latest release</a>
+            </p>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    const span = modal.querySelector('#aboutVersionSpan');
+    if (span && !span.textContent && manifest?.version) {
+        span.textContent = `v${manifest.version}`;
     }
-    
-    // Focus modal for accessibility
-    setTimeout(() => modal.focus(), 0);
-    
-    // Close button event
-    const closeBtn = modal.querySelector('.popup-modal__close');
-    closeBtn?.addEventListener('click', () => {
-        modal.remove();
-    });
-    
-    // Close on escape key
-    modal.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            modal.remove();
-        }
-    });
-    
-    // Close on backdrop click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
+    wireModal(modal);
 }

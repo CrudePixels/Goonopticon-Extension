@@ -1,10 +1,11 @@
 import { LogDev } from '../../log.js';
+import * as browser from 'webextension-polyfill';
 import { renderImportExport } from './popup-import-export.js';
 import { renderSettings } from './popup-settings.js';
 import { renderThemeSettings } from './popup-theme-settings.js';
 import { renderChangelog } from './popup-changelog.js';
 import { renderDevLog } from './popup-dev-log.js';
-import { showHelpAboutModal } from './popup-help-about.js';
+import { showHelpModal, showAboutModal } from './popup-help-about.js';
 
 /**
  * Renders the main popup menu UI.
@@ -17,14 +18,15 @@ export function renderMainMenu() {
 
     MenuTitle.textContent = "Menu";
     MenuContent.innerHTML = `
-        <div class="popup-buttons">
+        <div class="popup-buttons popup-buttons--main">
             <button class="podawful-btn" id="importExport">Import/Export</button>
             <button class="podawful-btn" id="settings">Settings</button>
             <button class="podawful-btn" id="themeSettings">Theme Settings</button>
             <button class="podawful-btn" id="changelog">Changelog</button>
             <button class="podawful-btn" id="devlog">Dev Log</button>
             <button class="podawful-btn" id="reportBug">Report Bug</button>
-            <button class="podawful-btn" id="helpAbout">Help / About</button>
+            <button class="podawful-btn" id="helpBtn">Help</button>
+            <button class="podawful-btn" id="aboutBtn">About</button>
         </div>
     `;
 
@@ -86,9 +88,13 @@ export function renderMainMenu() {
         window.open("mailto:podawfulhenchman@gmail.com?subject=PodAwful%20Bug%20Report", "_blank");
     });
 
-    document.getElementById("helpAbout")?.addEventListener("click", () => {
-        LogDev("Help/About button clicked", "interaction");
-        showHelpAboutModal();
+    document.getElementById('helpBtn')?.addEventListener('click', () => {
+        LogDev('Help button clicked', 'interaction');
+        showHelpModal();
+    });
+    document.getElementById('aboutBtn')?.addEventListener('click', () => {
+        LogDev('About button clicked', 'interaction');
+        showAboutModal();
     });
 
     // Render additional UI elements

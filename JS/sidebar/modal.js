@@ -75,6 +75,98 @@ export function showInputModal({ title, label, value = "", placeholder = "", typ
 }
 
 /**
+ * Add note + optional timestamp in one dialog. timeRaw empty means text-only note (no timestamp).
+ * @param {Object} options
+ * @param {string} options.title
+ * @param {string} [options.noteLabel]
+ * @param {string} [options.notePlaceholder]
+ * @param {string} options.timeLabel
+ * @param {string} [options.timePlaceholder]
+ * @param {string} [options.initialTime] - Prefill timestamp field (e.g. current playback time)
+ * @param {(values: { text: string, time: string }) => true|string} options.validate
+ * @returns {Promise<{ text: string, timeRaw: string }|null>}
+ */
+export function showAddNoteModal({
+    title,
+    noteLabel = "Note text:",
+    notePlaceholder = "Enter note text",
+    timeLabel,
+    timePlaceholder = "",
+    initialTime = "",
+    validate,
+}) {
+    return new Promise((resolve) => {
+        document.getElementById("podawful-generic-modal")?.remove();
+
+        const modal = document.createElement("div");
+        modal.id = "podawful-generic-modal";
+        modal.className = "podawful-modal";
+        modal.tabIndex = -1;
+        modal.setAttribute("aria-modal", "true");
+        modal.setAttribute("role", "dialog");
+        modal.style.zIndex = "100000";
+
+        const box = document.createElement("div");
+        box.className = "podawful-modal-box";
+        box.innerHTML = `<h3>${escapeHTML(title)}</h3>
+            <label for="add-note-text">${escapeHTML(noteLabel)}</label>
+            <input id="add-note-text" type="text" placeholder="${escapeHTML(notePlaceholder)}" style="width:100%;margin:8px 0 12px 0;" />
+            <label for="add-note-time">${escapeHTML(timeLabel)}</label>
+            <input id="add-note-time" type="text" value="${escapeHTML(initialTime)}" placeholder="${escapeHTML(timePlaceholder)}" style="width:100%;margin:8px 0 16px 0;" />
+            <div id="modal-error" style="color:var(--error, #c00);display:none;margin-bottom:8px;"></div>
+            <div style="text-align:right;">
+                <button class="podawful-btn" id="modalCancel">Cancel</button>
+                <button class="podawful-btn" id="modalOk">OK</button>
+            </div>`;
+
+        modal.appendChild(box);
+        document.body.appendChild(modal);
+
+        const noteInput = box.querySelector("#add-note-text");
+        const timeInput = box.querySelector("#add-note-time");
+        const errorDiv = box.querySelector("#modal-error");
+        noteInput.focus();
+
+        function cleanup(val) {
+            modal.remove();
+            resolve(val);
+        }
+
+        function handleOk() {
+            const text = noteInput.value;
+            const time = timeInput.value;
+            if (validate) {
+                const result = validate({ text, time });
+                if (result !== true) {
+                    errorDiv.textContent = typeof result === "string" ? result : "Invalid input.";
+                    errorDiv.style.display = "block";
+                    noteInput.style.borderColor = "";
+                    timeInput.style.borderColor = "";
+                    return;
+                }
+            }
+            cleanup({ text: text.trim(), timeRaw: time.trim() });
+        }
+
+        box.querySelector("#modalCancel").onclick = () => cleanup(null);
+        box.querySelector("#modalOk").onclick = handleOk;
+
+        noteInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") handleOk();
+            if (e.key === "Escape") cleanup(null);
+        });
+        timeInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") handleOk();
+            if (e.key === "Escape") cleanup(null);
+        });
+
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) cleanup(null);
+        });
+    });
+}
+
+/**
  * Shows a confirmation modal dialog.
  * @param {Object} options - Modal options (title, message, okText, cancelText, okButtonStyle, cancelButtonStyle).
  * @returns {Promise<boolean>} Resolves to true if confirmed, false if cancelled.

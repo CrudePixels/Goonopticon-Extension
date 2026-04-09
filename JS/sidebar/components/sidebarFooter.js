@@ -1,6 +1,6 @@
 // Sidebar Footer Component
 import { LogDev } from '../../log.js';
-import quotesRaw from '../../../Resources/Quotes.txt';
+import * as browser from 'webextension-polyfill';
 
 /**
  * Renders the sidebar footer.
@@ -12,11 +12,11 @@ export function renderSidebarFooter(props) {
         onAddNote,
         onClearAll,
         onAddGroup,
-        onAddTimestamp,
         onLockToggle,
         locked,
         groups,
-        stats
+        stats,
+        advancedFeatures = false,
     } = props;
 
     try {
@@ -36,14 +36,15 @@ export function renderSidebarFooter(props) {
         actionsContainer.style.alignItems = 'center';
         actionsContainer.style.width = '100%';
 
-        // + Group button
-        const groupBtn = document.createElement('button');
-        groupBtn.className = 'sidebar__action-btn';
-        groupBtn.textContent = '+ Group';
-        groupBtn.style.width = '90%';
-        groupBtn.style.maxWidth = '280px';
-        groupBtn.onclick = () => { if (typeof onAddGroup === 'function') onAddGroup(); };
-        actionsContainer.appendChild(groupBtn);
+        if (advancedFeatures) {
+            const groupBtn = document.createElement('button');
+            groupBtn.className = 'sidebar__action-btn';
+            groupBtn.textContent = '+ Group';
+            groupBtn.style.width = '90%';
+            groupBtn.style.maxWidth = '280px';
+            groupBtn.onclick = () => { if (typeof onAddGroup === 'function') onAddGroup(); };
+            actionsContainer.appendChild(groupBtn);
+        }
 
         // + Note button (combined)
         const noteBtn = document.createElement('button');
@@ -51,36 +52,20 @@ export function renderSidebarFooter(props) {
         noteBtn.textContent = '+ Note';
         noteBtn.style.width = '90%';
         noteBtn.style.maxWidth = '280px';
-        noteBtn.onclick = async () => {
-            if (typeof window.showConfirmModal === 'function') {
-                const isTimestamp = await window.showConfirmModal({
-                    title: 'Add Note',
-                    message: 'Do you want to add a timestamp to this note?',
-                    okText: 'Add Timestamp',
-                    cancelText: 'Just Note',
-                    okButtonStyle: 'background:var(--accent, #FFD600);color:var(--button-fg, #111);border-color:var(--accent, #FFD600);',
-                    cancelButtonStyle: 'background:var(--accent, #FFD600);color:var(--button-fg, #111);border-color:var(--accent, #FFD600);'
-                });
-                if (isTimestamp && typeof onAddTimestamp === 'function') {
-                    onAddTimestamp();
-                } else if (!isTimestamp && typeof onAddNote === 'function') {
-                    onAddNote();
-                }
-            } else {
-                // Fallback for when modal is not available
-                if (typeof onAddNote === 'function') onAddNote();
-            }
+        noteBtn.onclick = () => {
+            if (typeof onAddNote === 'function') onAddNote();
         };
         actionsContainer.appendChild(noteBtn);
 
-        // Lock/Unlock button
-        const lockBtn = document.createElement('button');
-        lockBtn.className = 'sidebar__action-btn';
-        lockBtn.textContent = locked ? 'Unlock' : 'Lock';
-        lockBtn.style.width = '90%';
-        lockBtn.style.maxWidth = '280px';
-        lockBtn.onclick = () => { if (typeof onLockToggle === 'function') onLockToggle(); };
-        actionsContainer.appendChild(lockBtn);
+        if (advancedFeatures) {
+            const lockBtn = document.createElement('button');
+            lockBtn.className = 'sidebar__action-btn';
+            lockBtn.textContent = locked ? 'Unlock' : 'Lock';
+            lockBtn.style.width = '90%';
+            lockBtn.style.maxWidth = '280px';
+            lockBtn.onclick = () => { if (typeof onLockToggle === 'function') onLockToggle(); };
+            actionsContainer.appendChild(lockBtn);
+        }
 
         footer.appendChild(actionsContainer);
 
@@ -97,59 +82,26 @@ export function renderSidebarFooter(props) {
             footer.appendChild(statsDiv);
         }
 
-        // Website selection button with random quote as text - ABSOLUTE POSITIONED AT BOTTOM
-        const quotes = quotesRaw.split('\n').map(q => q.trim()).filter(Boolean);
-        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-        const websiteButton = document.createElement('button');
-        websiteButton.className = 'sidebar__podawful-link';
-        websiteButton.textContent = randomQuote;
-        websiteButton.title = 'Choose Website';
-        // Let CSS handle positioning and styling
-        websiteButton.style.textAlign = 'center';
-        websiteButton.style.padding = '10px 16px';
-        websiteButton.style.color = 'var(--accent, #FFD600)';
-        websiteButton.style.fontSize = '1.1em';
-        websiteButton.style.fontWeight = '600';
-        websiteButton.style.borderRadius = '8px';
-        websiteButton.style.backgroundColor = 'rgba(255,214,0,0.08)';
-        websiteButton.style.border = '1.5px solid var(--accent, #FFD600)';
-        websiteButton.style.userSelect = 'text';
-        websiteButton.style.textDecoration = 'none';
-        websiteButton.style.transition = 'all 0.2s ease';
-        websiteButton.style.cursor = 'pointer';
-        websiteButton.style.width = '100%';
-        websiteButton.addEventListener('mouseenter', () => {
-            websiteButton.style.backgroundColor = 'var(--accent, #FFD600)';
-            websiteButton.style.color = 'var(--sidebar-bg, #1a1a1a)';
-        });
-        websiteButton.addEventListener('mouseleave', () => {
-            websiteButton.style.backgroundColor = 'rgba(255,214,0,0.08)';
-            websiteButton.style.color = 'var(--accent, #FFD600)';
-        });
-        
-        // Add click handler to show website selection modal
-        websiteButton.onclick = async () => {
-            if (typeof window.showTwoChoiceModal === 'function') {
-                const choice = await window.showTwoChoiceModal({
-                    title: 'Choose Website',
-                    message: 'Which website would you like to visit?',
-                    option1: '🌐 Visit Podawful.com',
-                    option2: '⚡ Visit Awful.tech'
-                });
-                
-                if (choice === '🌐 Visit Podawful.com') {
-                    window.open('https://podawful.com', '_blank', 'noopener,noreferrer');
-                } else if (choice === '⚡ Visit Awful.tech') {
-                    window.open('https://awful.tech', '_blank', 'noopener,noreferrer');
+        // Hide Sidebar (swapped from header)
+        const hideBtn = document.createElement('button');
+        hideBtn.className = 'sidebar__action-btn sidebar__hide-sidebar-btn';
+        hideBtn.type = 'button';
+        hideBtn.textContent = 'Hide Sidebar';
+        hideBtn.style.display = 'block';
+        hideBtn.style.margin = '8px auto 0 auto';
+        hideBtn.style.maxWidth = '280px';
+        hideBtn.style.width = '90%';
+        hideBtn.onclick = () => {
+            browser.storage.local.set({ 'PodAwful::SidebarVisible': 'false' }).then(() => {
+                const sidebar = document.getElementById('podawful-sidebar');
+                if (sidebar) {
+                    sidebar.classList.add('sidebar-hide');
+                    sidebar.style.display = 'none';
                 }
-                // If choice is 'Cancel' or null, do nothing
-            } else {
-                // Fallback: open podawful.com directly
-                window.open('https://podawful.com', '_blank', 'noopener,noreferrer');
-            }
+                document.body.classList.remove('sidebar-visible');
+            });
         };
-        
-        footer.appendChild(websiteButton);
+        footer.appendChild(hideBtn);
 
         return footer;
     } catch (e) {

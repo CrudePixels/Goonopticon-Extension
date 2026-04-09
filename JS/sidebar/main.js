@@ -4,11 +4,12 @@ import { GetNotes } from './storage-new.js';
 import * as browser from 'webextension-polyfill';
 import { LogDev } from '../log.js';
 import { normalizeYouTubeUrl } from '../utils.js';
-import { showInputModal, showConfirmModal, showChoiceModal, showTwoChoiceModal } from './modal.js';
+import { showInputModal, showConfirmModal, showChoiceModal, showTwoChoiceModal, showAddNoteModal } from './modal.js';
 
 // Set up global modal functions
 window.showInputModal = showInputModal;
 window.showConfirmModal = showConfirmModal;
+window.showAddNoteModal = showAddNoteModal;
 window.showChoiceModal = showChoiceModal;
 window.showTwoChoiceModal = showTwoChoiceModal;
 
@@ -113,6 +114,11 @@ browser.storage.onChanged.addListener((changes, area) =>
         }, 100);
     }
     if (area === 'local' && changes['PodAwful::SidebarVisible'])
+    {
+        const sidebar = document.getElementById('podawful-sidebar');
+        if (sidebar) renderSidebar(sidebar);
+    }
+    if (area === 'local' && (changes['PodAwful::AdvancedFeatures'] || changes['PodAwful::EnableBulkActions']))
     {
         const sidebar = document.getElementById('podawful-sidebar');
         if (sidebar) renderSidebar(sidebar);

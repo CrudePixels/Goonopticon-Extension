@@ -92,7 +92,7 @@ function createRelease(newVersion) {
     
     console.log(`\n🎉 Release v${newVersion} created successfully!`);
     console.log('GitHub Actions will now build and publish the release automatically.');
-    console.log(`Check: https://github.com/CrudePixels/Goonopticon/releases`);
+    console.log(`Check: https://github.com/CrudePixels/Goonopticon-Extension/releases`);
     
   } catch (error) {
     console.error('Error creating release:', error.message);

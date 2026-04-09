@@ -124,7 +124,7 @@ try {
                 sendMessage: () => Promise.resolve(),
                 onInstalled: { addListener: () => {} },
                 onStartup: { addListener: () => {} },
-                getManifest: () => ({ version: "2.0.7", name: "Goonopticon" })
+                getManifest: () => ({ version: "2.6.0", name: "Goonopticon" })
             },
             tabs: {
                 query: () => Promise.resolve([]),
