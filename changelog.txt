@@ -9,9 +9,8 @@ Version 2.6.1 (2026-04-09)
 
 Version 2.6.0 (2026-04-09)
 - Update checks now use GitHub releases: CrudePixels/Goonopticon-Extension (was Goonopticon repo)
-- Desktop bridge merged from GE companion; Options + popup bridge status
+- Desktop bridge merged; Options + popup bridge status
 - Advanced features toggle hides search, tag manager, + Group, Lock by default
-- + Note: single dialog for text + optional timestamp; no extra chooser step
 - Sidebar: quote/site link swapped with Hide Sidebar; show-sidebar uses logo + YouTube player control
 - Popup: larger main menu buttons; Help and About split into short modals with repo links
 
