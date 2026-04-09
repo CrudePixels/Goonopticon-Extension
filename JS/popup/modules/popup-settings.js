@@ -34,7 +34,6 @@ export function renderSettings() {
                 <input type="checkbox" id="advancedFeatures" style="margin: 0;">
                 <span>Advanced features</span>
             </label>
-            <p style="margin: 0; font-size: 12px; opacity: 0.85;">Advanced features show search, tag manager, add group, and lock in the sidebar.</p>
         </div>
         <button class="podawful-btn" id="backBtn" style="margin-top: 20px;">Back</button>
     `;

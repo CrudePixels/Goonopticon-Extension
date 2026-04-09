@@ -40,6 +40,7 @@ export function renderSidebarFooter(props) {
             const groupBtn = document.createElement('button');
             groupBtn.className = 'sidebar__action-btn';
             groupBtn.textContent = '+ Group';
+            groupBtn.title = 'Create a new note group';
             groupBtn.style.width = '90%';
             groupBtn.style.maxWidth = '280px';
             groupBtn.onclick = () => { if (typeof onAddGroup === 'function') onAddGroup(); };
@@ -61,6 +62,7 @@ export function renderSidebarFooter(props) {
             const lockBtn = document.createElement('button');
             lockBtn.className = 'sidebar__action-btn';
             lockBtn.textContent = locked ? 'Unlock' : 'Lock';
+            lockBtn.title = locked ? 'Unlock the sidebar to edit notes and groups' : 'Lock the sidebar to prevent accidental edits';
             lockBtn.style.width = '90%';
             lockBtn.style.maxWidth = '280px';
             lockBtn.onclick = () => { if (typeof onLockToggle === 'function') onLockToggle(); };

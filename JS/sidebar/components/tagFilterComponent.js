@@ -28,6 +28,7 @@ export function renderTagFilter(props) {
             searchInput.className = 'tag-filter__search';
             searchInput.type = 'text';
             searchInput.placeholder = 'Search...';
+            searchInput.title = 'Filter notes by text in the sidebar';
             if (highlight) searchInput.value = highlight;
             searchInput.setAttribute('aria-label', 'Search');
             searchInput.oninput = null;
@@ -47,6 +48,7 @@ export function renderTagFilter(props) {
             clearBtn.className = 'tag-filter__clear';
             clearBtn.textContent = '✕';
             clearBtn.setAttribute('aria-label', 'Clear search');
+            clearBtn.title = 'Clear search';
             clearBtn.disabled = !highlight;
             clearBtn.onclick = () => {
                 if (typeof props.onSearch === 'function') props.onSearch('');
@@ -87,6 +89,7 @@ export function renderTagFilter(props) {
             const tagManagerBtn = document.createElement('button');
             tagManagerBtn.className = 'tag-filter__manager-btn';
             tagManagerBtn.textContent = 'Manage Tags';
+            tagManagerBtn.title = 'Rename, merge, or remove tags';
             tagManagerBtn.setAttribute('aria-label', 'Open tag manager');
             tagManagerBtn.onclick = () => {
                 if (typeof props.showTagManagerModal === 'function') props.showTagManagerModal();

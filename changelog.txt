@@ -1,3 +1,7 @@
+Version 2.6.2 (2026-04-09)
+- Settings: Advanced features toggle in popup settings menu (popup-menus.js); matches sidebar storage key
+- Advanced UI: removed inline description; native tooltips on sidebar search, Manage Tags, + Group, and Lock
+
 Version 2.6.1 (2026-04-09)
 - Safari Web Extension: manifest `browser_specific_settings.safari` (min 16.4)
 - `npm run safari:convert` (macOS/Xcode) generates Xcode wrapper; `safari/README.md` for temp install

@@ -553,6 +553,7 @@ const DEVLOG_BTN_KEY = "PodAwful::ShowDevLogBtn";
 const CHANGELOG_BTN_KEY = "PodAwful::ShowChangelogBtn";
 const HOTKEYS_BTN_KEY = "PodAwful::ShowHotkeysBtn";
 const BULK_ACTIONS_KEY = "PodAwful::EnableBulkActions";
+const ADVANCED_FEATURES_KEY = "PodAwful::AdvancedFeatures";
 
 // --- Storage Helpers ---
 function getBtnSetting(key, cb, defaultVal = false)
@@ -867,6 +868,7 @@ function renderSettings()
         <label><input type="checkbox" id="toggleDevLogBtn" /> Show Dev Log Button</label><br>
         <label><input type="checkbox" id="toggleChangelogBtn" /> Show Changelog Button</label><br>
         <label><input type="checkbox" id="toggleBulkActions" /> Enable Bulk Actions</label><br>
+        <label><input type="checkbox" id="toggleAdvancedFeatures" /> Advanced features</label><br>
         <label><input type="checkbox" id="toggleThemeSettings" /> Theme Settings</label><br>
         <button class="podawful-btn" id="checkForUpdates" style="margin-top: 10px;">Check for Updates</button><br>
         <button class="podawful-btn" id="backBtn">Back</button>
@@ -945,6 +947,16 @@ function renderSettings()
         });
     }
 
+    const advancedFeaturesToggle = document.getElementById('toggleAdvancedFeatures');
+    if (advancedFeaturesToggle) {
+        getBtnSetting(ADVANCED_FEATURES_KEY, (checked) => {
+            advancedFeaturesToggle.checked = checked;
+        }, false);
+        advancedFeaturesToggle.addEventListener('change', (e) => {
+            LogDev('Advanced features toggle: ' + e.target.checked, 'interaction');
+            setBtnSetting(ADVANCED_FEATURES_KEY, e.target.checked, () => {});
+        });
+    }
 
     document.getElementById("checkForUpdates")?.addEventListener("click", async () =>
     {
